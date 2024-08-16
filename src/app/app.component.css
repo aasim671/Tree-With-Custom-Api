@@ -1,0 +1,53 @@
+app.component.css
+.tree-container {
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+.search-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  width: 310px;
+}
+
+.search-container mat-form-field {
+  margin-right: 10px;
+  flex: 1;
+}
+
+.node-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.editing-container {
+  display: flex;
+  align-items: center;
+}
+
+.editing-container mat-form-field {
+  margin-right: 10px;
+}
+
+.action-buttons button {
+  margin: 0 5px;
+}
+
+
+
+.mat-icon-button {
+  margin: 0;
+}
+
+.mat-icon {
+  font-size: 24px;
+}
+
+.mat-form-field {
+  width: 100%;
+}
+
+
+

@@ -1,0 +1,189 @@
+<h1>Tree</h1>
+<div class="search-container">
+  <mat-form-field appearance="fill">
+    <mat-label>Search Node</mat-label>
+    <input matInput [(ngModel)]="filterName" placeholder="Enter node name" (ngModelChange)="onFilterChange($event)" />
+  </mat-form-field>
+</div>
+
+<div *ngIf="noDataMessage">{{ noDataMessage }}</div>
+<mat-tree [dataSource]="dataSource" [treeControl]="treeControl">
+  <mat-tree-node *matTreeNodeDef="let node; when: hasNoContent" matTreeNodePadding>
+    <!-- <ng-container *ngIf="node.adding">
+    <mat-form-field appearance="fill">
+      <input matInput [(ngModel)]="newItemName" placeholder="Enter item name" />
+    </mat-form-field>
+    <button mat-raised-button (click)="saveNode(node, newItemName)">Save</button>
+
+  </ng-container> -->
+
+  </mat-tree-node>
+
+  <!-- Node with children  *ngIf="hasChildren(node)"  (click)="toggleNode(node)" -->
+  <mat-tree-node *matTreeNodeDef="let node; when: hasChild" matTreeNodePadding>
+    <!-- <button mat-icon-button    matTreeNodeToggle [attr.aria-label]="'Toggle ' + node.name">
+      <mat-icon class="mat-icon-rtl-mirror">
+        {{ treeControl.isExpanded(node) ? "expand_more" : "chevron_right" }}
+      </mat-icon>
+    </button> -->
+
+
+    <button mat-icon-button matTreeNodeToggle   (click)="handleNodeClick(node)" [attr.aria-label]="'Toggle ' + node.name">
+      <mat-icon class="mat-icon-rtl-mirror">
+        {{ treeControl.isExpanded(node) ? "expand_more" : "chevron_right" }}
+      </mat-icon>
+    </button>
+
+
+
+
+    <div class="node-actions">
+      <!-- Node name always visible -->
+      <span *ngIf="editingNode !== node && editingNodePosition !== node">
+        {{ node.name }}
+      </span>
+
+      <!-- Template for updating position -->
+      <ng-container *ngIf="editingNodePosition === node">
+        <div class="editing-container">
+          <mat-form-field appearance="fill" class="edit-position">
+            <mat-label>Edit position</mat-label>
+            <mat-select [(ngModel)]="editingNodeLevel" placeholder="Select position">
+              <mat-option *ngFor="let option of optionnodes" [value]="option">
+                {{ option.name }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+          <button mat-raised-button (click)="onSelection(node.id)">
+            Update
+          </button>
+        </div>
+      </ng-container>
+
+
+      <ng-container *ngIf="node.adding">
+        <mat-form-field appearance="fill">
+          <input matInput [(ngModel)]="newItemName" placeholder="Enter item name" />
+        </mat-form-field>
+        <button mat-raised-button (click)="saveNode(node, newItemName)">Save</button>
+      </ng-container>
+
+
+      <!-- Template for editing node -->
+      <ng-container *ngIf="editingNode === node">
+        <div class="editing-container">
+          <mat-form-field appearance="fill" class="edit-field">
+            <mat-label>Edit node name...</mat-label>
+            <input matInput #updateValue [value]="node.name" />
+          </mat-form-field>
+          <button mat-raised-button (click)="updateNodeName(node.id, updateValue.value)">
+            Update
+          </button>
+        </div>
+      </ng-container>
+
+      <!-- Add button for node -->
+      <button mat-icon-button (click)="addNewItem(node)">
+        <mat-icon>add</mat-icon>
+      </button>
+
+      <!-- Edit button for node -->
+      <button mat-icon-button (click)="edit(node)">
+        <mat-icon>edit</mat-icon>
+      </button>
+
+      <!-- Delete button for node -->
+      <button mat-icon-button (click)="deleteItem(node)">
+        <mat-icon>delete</mat-icon>
+      </button>
+
+      <!-- Edit position -->
+      <button mat-icon-button (click)="updatePosition(node)" *ngIf="editingNodePosition !== node">
+        <mat-icon>swap_vert</mat-icon>
+      </button>
+    </div>
+  </mat-tree-node>
+
+  <!-- Node without children -->
+  <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
+    <button mat-icon-button disabled>
+      <mat-icon class="mat-icon-rtl-mirror"></mat-icon>
+    </button>
+
+    <div class="node-actions">
+      <!-- Node name always visible -->
+      <span *ngIf="editingNode !== node && editingNodePosition !== node">
+        {{ node.name }}
+      </span>
+
+      <!-- Template for updating position -->
+      <ng-container *ngIf="editingNodePosition === node">
+        <div class="editing-container">
+          <mat-form-field appearance="fill" class="edit-position">
+            <mat-label>Edit position</mat-label>
+            <mat-select [(ngModel)]="editingNodeLevel" placeholder="Select position">
+              <mat-option *ngFor="let option of optionnodes" [value]="option">
+                {{ option.name }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+          <button mat-raised-button (click)="onSelection(node.id)">
+            Update
+          </button>
+        </div>
+      </ng-container>
+
+
+      <ng-container *ngIf="node.adding">
+        <mat-form-field appearance="fill">
+          <input matInput [(ngModel)]="newItemName" placeholder="Enter item name" />
+        </mat-form-field>
+        <button mat-raised-button (click)="saveNode(node, newItemName)">Save</button>
+      </ng-container>
+      <!-- Template for editing node -->
+      <ng-container *ngIf="editingNode === node">
+        <div class="editing-container">
+          <mat-form-field appearance="fill" class="edit-field">
+            <mat-label>Edit node name...</mat-label>
+            <input matInput #updateValue [value]="node.name" />
+          </mat-form-field>
+          <button mat-raised-button (click)="updateNodeName(node.id, updateValue.value)">
+            Update
+          </button>
+        </div>
+      </ng-container>
+
+
+      <!-- Add button for node -->
+      <button mat-icon-button (click)="addNewItem(node)">
+
+        <mat-icon>add</mat-icon>
+      </button>
+
+      <!-- Edit button for node -->
+      <button mat-icon-button (click)="edit(node)">
+        <mat-icon>edit</mat-icon>
+      </button>
+
+      <!-- Delete button for node -->
+      <button mat-icon-button (click)="deleteItem(node)">
+        <mat-icon>delete</mat-icon>
+      </button>
+
+      <!-- Edit position -->
+      <button mat-icon-button (click)="updatePosition(node)" *ngIf="editingNodePosition !== node">
+        <mat-icon>swap_vert</mat-icon>
+      </button>
+    </div>
+  </mat-tree-node>
+</mat-tree>
+
+
+
+
+<!-- <ng-container >
+<mat-form-field appearance="fill">
+  <input matInput [(ngModel)]="newItemName" placeholder="Enter item name" />
+</mat-form-field>
+<button mat-raised-button>Save</button>
+</ng-container> -->
