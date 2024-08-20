@@ -195,10 +195,7 @@ export class ChecklistDatabase {
 
 
 
-  // sendNodes(nodes: TodoItemNode[]): Observable<any> {
-  //   const formattedNodes = this.transformToApiFormat(nodes);
-  //   return this.apiService.sendNodes(formattedNodes);
-  // }
+
 }
 
 // AppComponent
@@ -239,6 +236,7 @@ export class AppComponent implements OnInit {
   checklistSelection = new SelectionModel<TodoItemFlatNode>(true);
   editingNodeLevel !: TodoItemFlatNode;
   optionnodes: TodoItemFlatNode[] = [];
+  dropdownData: TodoItemFlatNode[] = [];
   editingNode: TodoItemFlatNode | null = null;
   editingNodePosition: TodoItemFlatNode | null = null;
   filterName: string = '';
@@ -262,7 +260,7 @@ export class AppComponent implements OnInit {
 
     _database.dataChange.subscribe(data => {
       this.dataSource.data = data;
-      this.optionnodes = this.getdropddownnode();
+      this.getdropddownnode();
     });
 
 
@@ -329,6 +327,7 @@ export class AppComponent implements OnInit {
   newItemParentNode: TodoItemFlatNode | null = null;
 
   transformer = (node: TodoItemNode, level: number) => {
+    debugger
     const existingNode = this.nestedNodeMap.get(node);
     const flatNode = existingNode && existingNode.name === node.name ? existingNode : new TodoItemFlatNode();
     flatNode.id = node.id;
@@ -561,71 +560,97 @@ export class AppComponent implements OnInit {
 
   updatePosition(node: TodoItemFlatNode) {
     this.editingNodePosition = node;
-    this.optionnodes = this.getdropddownnode(node);
+    this.getdropddownnode(node);
     // this.editingNodeLevel = node.item;
     this.treeControl.expand(node);
   }
 
-
-  getdropddownnode(excludeNode: TodoItemFlatNode | null = null): TodoItemFlatNode[] {
-    const allNodes: TodoItemFlatNode[] = [];
-
-
-    const excludeSet = new Set<TodoItemFlatNode>();
-
-    // Function to add a node and all its descendants to the exclude set
-    const addChildrenToExcludeSet = (node: TodoItemNode) => {
-      if (node.children) {
-        node.children.forEach((childNode) => {
-          const childFlatNode = this.nestedNodeMap.get(childNode);
-          if (childFlatNode) {
-            excludeSet.add(childFlatNode);
-            addChildrenToExcludeSet(childNode);
-          }
-        });
-      }
-    };
-
-    // Function to find and add parent of a given node to the exclude set
-    const addParentToExcludeSet = (node: TodoItemNode) => {
-      const parent = this._database.getParentNode(node); // Find parent of the given node
-      if (parent) {
-        const parentFlatNode = this.nestedNodeMap.get(parent);
-        if (parentFlatNode) {
-          excludeSet.add(parentFlatNode);
-        }
-      }
-    };
-
-    if (excludeNode) {
-      // Add the excludeNode itself to the exclude set
-      excludeSet.add(excludeNode);
-
-      // Fetch the nested node corresponding to excludeNode
-      const nestedNode = this.flatNodeMap.get(excludeNode);
-      if (nestedNode) {
-        addChildrenToExcludeSet(nestedNode);
-        addParentToExcludeSet(nestedNode);
-      }
-      // console.log('Exclude Node:', excludeNode);
-      // console.log('Exclude Set:', Array.from(excludeSet));
+  getdropddownnode(selectedNode: TodoItemFlatNode | null = null): void {
+    if (!selectedNode) {
+      return;
     }
 
-    const collectAllNodes = (nodes: TodoItemNode[], level: number) => {
-      nodes.forEach((node) => {
-        const flatNode = this.transformer(node, level);
-        if (!excludeSet.has(flatNode)) {
-          allNodes.push(flatNode);
-        }
-        if (node.children) {
-          collectAllNodes(node.children, level + 1);
+    const nodeId = selectedNode.id;
+    const apiUrl = `http://localhost:1337/api/getName/${nodeId}`;
+
+    this.http.get<TodoItemFlatNode[]>(apiUrl).subscribe(
+      (data) => {
+        if (data && data.length > 0) {
+          this.optionnodes = data; // Populate optionnodes with the API data
+          console.log('Option Nodes:', this.optionnodes); // Log to verify the structure
+        } else {
+          console.error('No data received or data is empty');
+          alert('No dropdown data available for the selected node.');
         }
       });
-    };
-
-    collectAllNodes(this._database.data, 0);
-    return allNodes;
   }
+
+
+
+
+
+
+
+
+  // getdropddownnode(excludeNode: TodoItemFlatNode | null = null): TodoItemFlatNode[] {
+  //   const allNodes: TodoItemFlatNode[] = [];
+
+
+  //   const excludeSet = new Set<TodoItemFlatNode>();
+
+  //   // Function to add a node and all its descendants to the exclude set
+  //   const addChildrenToExcludeSet = (node: TodoItemNode) => {
+  //     if (node.children) {
+  //       node.children.forEach((childNode) => {
+  //         const childFlatNode = this.nestedNodeMap.get(childNode);
+  //         if (childFlatNode) {
+  //           excludeSet.add(childFlatNode);
+  //           addChildrenToExcludeSet(childNode);
+  //         }
+  //       });
+  //     }
+  //   };
+
+  //   // Function to find and add parent of a given node to the exclude set
+  //   const addParentToExcludeSet = (node: TodoItemNode) => {
+  //     const parent = this._database.getParentNode(node); // Find parent of the given node
+  //     if (parent) {
+  //       const parentFlatNode = this.nestedNodeMap.get(parent);
+  //       if (parentFlatNode) {
+  //         excludeSet.add(parentFlatNode);
+  //       }
+  //     }
+  //   };
+
+  //   if (excludeNode) {
+  //     // Add the excludeNode itself to the exclude set
+  //     excludeSet.add(excludeNode);
+
+  //     // Fetch the nested node corresponding to excludeNode
+  //     const nestedNode = this.flatNodeMap.get(excludeNode);
+  //     if (nestedNode) {
+  //       addChildrenToExcludeSet(nestedNode);
+  //       addParentToExcludeSet(nestedNode);
+  //     }
+  //     // console.log('Exclude Node:', excludeNode);
+  //     // console.log('Exclude Set:', Array.from(excludeSet));
+  //   }
+
+  //   const collectAllNodes = (nodes: TodoItemNode[], level: number) => {
+  //     nodes.forEach((node) => {
+  //       const flatNode = this.transformer(node, level);
+  //       if (!excludeSet.has(flatNode)) {
+  //         allNodes.push(flatNode);
+  //       }
+  //       if (node.children) {
+  //         collectAllNodes(node.children, level + 1);
+  //       }
+  //     });
+  //   };
+
+  //   collectAllNodes(this._database.data, 0);
+  //   return allNodes;
+  // }
 
   // handleNodeClick(node: TodoItemFlatNode) {
   //   // Check if the node is expanded
